@@ -44,7 +44,7 @@ fn reverse(str: &str) -> String
 
 fn main()
 {
-    let file = File::open("./input.txt").unwrap();
+    let file = File::open("./day-01/input.txt").unwrap();
     let buffer = BufReader::new(file);
 
     let mut sum = 0;
