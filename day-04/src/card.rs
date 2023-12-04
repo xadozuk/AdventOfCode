@@ -1,5 +1,6 @@
 pub struct Card
 {
+    #[allow(dead_code)]
     id: u32,
     winning_numbers: Vec<u32>,
     numbers: Vec<u32>

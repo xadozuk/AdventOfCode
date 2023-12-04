@@ -1,4 +1,4 @@
-use std::cmp::{min, max};
+use std::cmp::max;
 
 pub struct CubeSet
 {
