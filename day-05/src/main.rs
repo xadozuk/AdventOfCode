@@ -1,6 +1,7 @@
 use std::{io::BufReader, fs::File};
 
 mod farm;
+mod range;
 
 fn main()
 {

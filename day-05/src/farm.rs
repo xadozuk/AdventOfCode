@@ -1,5 +1,7 @@
 use std::{collections::HashMap, ops::Range, io::{BufReader, BufRead}, fs::File};
 
+use crate::range;
+
 const ENTRY_MAP: &str = "seed";
 
 pub struct Manager
@@ -126,20 +128,32 @@ impl Manager
 
         for seed_range in &self.seed_ranges
         {
-            println!("\n[DEBUG]: Range {0}..{1}", seed_range.start, seed_range.end);
-
-            for seed in seed_range.start..seed_range.end
-            {
-                if seed % 10000 == 0
-                {
-                    println!("[DEBUG][{0}..{1}] {2}", seed_range.start, seed_range.end, seed);
-                }
-
-                lowest_location = std::cmp::min(lowest_location, self.get_mapped_value(seed, "location", ENTRY_MAP));
-            }
+            lowest_location = lowest_location.min(self.lowest_range_location(seed_range))
         }
 
-        return lowest_location
+        return lowest_location;
+    }
+
+    pub fn lowest_range_location(&self, range: &Range::<u64>) -> u64
+    {
+        let mut translated_ranges = vec![range.clone()];
+        let mut current_map = String::from(ENTRY_MAP);
+
+        while let Some(map) = self.maps.get(&current_map)
+        {
+            current_map = map.dst.clone();
+
+            translated_ranges = translated_ranges
+                .into_iter()
+                .flat_map(|range| map.translate(range))
+                .collect();
+        }
+
+        return translated_ranges
+            .iter()
+            .map(|r| r.start)
+            .min()
+            .unwrap_or(u64::MAX);
     }
 
     fn get_mapped_value(&self, value: u64, dst_map: &str, src_map: &str) -> u64
@@ -170,5 +184,55 @@ impl Map
         }
 
         return src_value;
+    }
+
+    pub fn translate(&self, initial_range: Range<u64>) -> Vec<Range<u64>>
+    {
+        let mut translated = vec![initial_range.clone()];
+        let mut output = vec![];
+
+        while let Some(range) = translated.pop()
+        {
+            // If we don't find intersect -> non-mapped ranges
+            let mut found_intersect = false;
+
+            for mapped_range in &self.ranges
+            {
+                // If we have no intesection, skip
+                if !range::has_intersect(&range, &mapped_range.0) { continue }
+
+                found_intersect = true;
+
+                // We have an intersection, so compute interest range
+                let intersect = range::intersect(&range, &mapped_range.0);
+
+                // intersect_start - range.start = shift
+                let translated_range = (intersect.start - mapped_range.0.start + mapped_range.1.start)..(intersect.end - mapped_range.0.start + mapped_range.1.start);
+
+                // We add intersection to output
+                output.push(translated_range);
+
+                // We also need to re-add remaining intersect (before/after) to find non-mapped values (holes)
+                if intersect.start > range.start
+                {
+                    translated.push(range.start..intersect.start);
+                }
+
+                if intersect.end < range.end
+                {
+                    translated.push(intersect.end..range.end);
+                }
+
+                // We break to pop remaining ranges
+                break;
+            }
+
+            if !found_intersect
+            {
+                output.push(range);
+            }
+        }
+
+        return output
     }
 }
