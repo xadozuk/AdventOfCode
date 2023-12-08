@@ -1,9 +1,11 @@
 use std::{cmp::Ordering, collections::HashMap, fmt::{Formatter, Error}};
 
+#[allow(dead_code)]
 const CARDS_ORDER_1: [char; 13] = [
     'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'
 ];
 
+#[allow(dead_code)]
 const CARDS_ORDER_2: [char; 13] = [
     'A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J'
 ];

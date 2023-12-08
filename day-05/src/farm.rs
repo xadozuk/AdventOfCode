@@ -13,6 +13,7 @@ pub struct Manager
 
 pub struct Map
 {
+    #[allow(dead_code)]
     src: String,
     dst: String,
 
